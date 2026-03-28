@@ -206,9 +206,9 @@ body.pseudo-fullscreen #wrapper {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  width: 100vw;
+  width: var(--pseudo-vw, 100dvw);
   max-width: none;
-  height: 100vh;
+  height: var(--pseudo-vh, 100dvh);
   padding: 0;
   gap: 8px;
 }
@@ -245,6 +245,11 @@ body.pseudo-fullscreen #utility-bar {
 
 body.pseudo-fullscreen.mobile-controls-enabled #wrapper {
   padding-bottom: calc(112px + env(safe-area-inset-bottom));
+}
+
+body.pseudo-fullscreen.mobile-controls-enabled #mobile-controls {
+  display: flex;
+  z-index: 60;
 }
 
 @media (hover: none) and (pointer: coarse) {

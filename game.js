@@ -207,12 +207,34 @@ function initFullscreenControl() {
   const isPseudoFullscreenActive = () =>
     document.body.classList.contains("pseudo-fullscreen");
 
+  const refreshPseudoViewport = () => {
+    if (isPseudoFullscreenActive()) {
+      document.documentElement.style.setProperty(
+        "--pseudo-vw",
+        `${window.innerWidth}px`,
+      );
+      document.documentElement.style.setProperty(
+        "--pseudo-vh",
+        `${window.innerHeight}px`,
+      );
+    } else {
+      document.documentElement.style.removeProperty("--pseudo-vw");
+      document.documentElement.style.removeProperty("--pseudo-vh");
+    }
+  };
+
   const enablePseudoFullscreen = () => {
     document.body.classList.add("pseudo-fullscreen");
+    if (isMobileLike) {
+      mobileControlsEnabled = true;
+      document.body.classList.add("mobile-controls-enabled");
+    }
+    refreshPseudoViewport();
   };
 
   const disablePseudoFullscreen = () => {
     document.body.classList.remove("pseudo-fullscreen");
+    refreshPseudoViewport();
   };
 
   const updateFullscreenLabel = () => {
@@ -292,6 +314,13 @@ function initFullscreenControl() {
   document.addEventListener("fullscreenchange", updateFullscreenLabel);
   document.addEventListener("webkitfullscreenchange", updateFullscreenLabel);
   document.addEventListener("msfullscreenchange", updateFullscreenLabel);
+
+  window.addEventListener("resize", refreshPseudoViewport, { passive: true });
+  window.addEventListener("orientationchange", () => {
+    refreshPseudoViewport();
+    setTimeout(refreshPseudoViewport, 180);
+  });
+
   updateFullscreenLabel();
 }
 
