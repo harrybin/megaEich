@@ -40,6 +40,8 @@ body::before {
   flex-direction: column;
   align-items: center;
   gap: 14px;
+  width: min(100vw, 860px);
+  padding: 12px;
 }
 
 #gameCanvas {
@@ -52,6 +54,9 @@ body::before {
     inset 0 0 0 1px rgba(255, 255, 255, 0.05);
   max-width: 100vw;
   image-rendering: pixelated;
+  width: 100%;
+  height: auto;
+  touch-action: none;
 }
 
 #controls-hint {
@@ -59,4 +64,101 @@ body::before {
   color: #556;
   letter-spacing: 0.4px;
   text-transform: uppercase;
+}
+
+#mobile-controls {
+  display: none;
+  width: 100%;
+  justify-content: space-between;
+  align-items: end;
+  gap: 12px;
+}
+
+.touch-pad,
+.touch-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.touch-btn {
+  border: 2px solid #f5a623;
+  border-radius: 14px;
+  background: rgba(10, 16, 26, 0.92);
+  color: #f5a623;
+  font-family: "Courier New", monospace;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  box-shadow: 0 0 18px rgba(245, 166, 35, 0.25);
+  user-select: none;
+  touch-action: none;
+}
+
+.touch-btn:active {
+  transform: translateY(1px);
+  background: rgba(28, 40, 58, 0.95);
+}
+
+.touch-pad .touch-btn {
+  width: 62px;
+  height: 62px;
+  font-size: 26px;
+}
+
+.touch-btn-jump {
+  width: 92px;
+  height: 62px;
+  font-size: 16px;
+}
+
+.touch-btn-pause {
+  width: 92px;
+  height: 62px;
+  font-size: 14px;
+}
+
+#mobile-controls-hint {
+  display: none;
+  font-size: 11px;
+  color: #6f7d90;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+body.mobile-controls-enabled {
+  overflow-y: auto;
+}
+
+body.mobile-controls-enabled #mobile-controls,
+body.mobile-controls-enabled #mobile-controls-hint {
+  display: flex;
+}
+
+body.mobile-controls-enabled #controls-hint {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  body {
+    justify-content: flex-start;
+    padding: 10px 0;
+  }
+}
+
+@media (max-width: 520px) {
+  #wrapper {
+    padding: 8px;
+    gap: 10px;
+  }
+
+  .touch-pad .touch-btn {
+    width: 56px;
+    height: 56px;
+    font-size: 24px;
+  }
+
+  .touch-btn-jump,
+  .touch-btn-pause {
+    width: 86px;
+    height: 56px;
+  }
 }

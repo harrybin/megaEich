@@ -54,6 +54,71 @@ const MVP_NAMES = [
 //  INPUT
 // ─────────────────────────────────────────────
 const keys = {};
+let mobileControlsEnabled = false;
+
+function detectMobileBrowser() {
+  return (
+    window.matchMedia("(pointer: coarse)").matches ||
+    navigator.maxTouchPoints > 0 ||
+    /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
+  );
+}
+
+function setKeyState(code, pressed) {
+  keys[code] = pressed;
+}
+
+function releaseMobileKeys() {
+  setKeyState("ArrowLeft", false);
+  setKeyState("ArrowRight", false);
+  setKeyState("Space", false);
+}
+
+function bindTouchControlButton(btn) {
+  const key = btn.dataset.touchKey;
+  const action = btn.dataset.touchAction;
+  const isPauseAction = action === "pause";
+
+  const press = (e) => {
+    e.preventDefault();
+    tryStartMusic();
+    if (isPauseAction) {
+      togglePause();
+      return;
+    }
+    setKeyState(key, true);
+  };
+
+  const release = (e) => {
+    e.preventDefault();
+    if (isPauseAction) return;
+    setKeyState(key, false);
+  };
+
+  btn.addEventListener("pointerdown", press);
+  btn.addEventListener("pointerup", release);
+  btn.addEventListener("pointercancel", release);
+  btn.addEventListener("pointerleave", release);
+}
+
+function initMobileControls() {
+  const controls = document.getElementById("mobile-controls");
+  if (!controls) return;
+
+  mobileControlsEnabled = detectMobileBrowser();
+  if (!mobileControlsEnabled) return;
+
+  document.body.classList.add("mobile-controls-enabled");
+  const touchButtons = controls.querySelectorAll(".touch-btn");
+  touchButtons.forEach((btn) => bindTouchControlButton(btn));
+
+  // Avoid stuck movement when a touch is interrupted by OS gestures.
+  window.addEventListener("blur", releaseMobileKeys);
+  window.addEventListener("pointerup", (e) => {
+    if (e.pointerType !== "mouse") releaseMobileKeys();
+  });
+}
+
 window.addEventListener("keydown", (e) => {
   tryStartMusic();
   keys[e.code] = true;
@@ -1288,5 +1353,6 @@ function togglePause() {
   else if (state === "PAUSED") state = "PLAYING";
 }
 
+initMobileControls();
 initBgStars();
 gameLoop();
