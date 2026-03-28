@@ -435,13 +435,29 @@ function loseLife() {
 //  HAZARDS
 // ─────────────────────────────────────────────
 function checkHazards() {
-  const cx = player.x + player.w / 2;
-  const cy = player.y + player.h / 2;
-
   for (const h of hazards) {
     if (!h.active) continue;
+    
+    // Generous collision check: rectangle vs rectangle
+    // Player bounding box
+    const playerLeft = player.x;
+    const playerRight = player.x + player.w;
+    const playerTop = player.y;
+    const playerBottom = player.y + player.h;
+    
+    // Hazard bounding box (centered at h.x, h.y)
+    const hazardLeft = h.x - h.w / 2;
+    const hazardRight = h.x + h.w / 2;
+    const hazardTop = h.y - h.h;
+    const hazardBottom = h.y + h.h;
+    
     // AABB collision
-    if (cx > h.x && cx < h.x + h.w && cy > h.y - h.h && cy < h.y + h.h) {
+    if (
+      playerRight > hazardLeft &&
+      playerLeft < hazardRight &&
+      playerBottom > hazardTop &&
+      playerTop < hazardBottom
+    ) {
       h.active = false;
       if (h.type === "fire") {
         loseLife();
