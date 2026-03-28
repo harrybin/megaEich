@@ -1,0 +1,178 @@
+name: Auto Resolve Merge Conflicts
+
+on:
+    pull_request:
+        branches:
+            - main
+        types:
+            - opened
+            - synchronize
+            - reopened
+    push:
+        branches:
+            - main
+
+permissions:
+    contents: write
+    pull-requests: write
+
+concurrency:
+    group: auto-resolve-${{ github.event.pull_request.number || github.sha }}
+    cancel-in-progress: false
+
+jobs:
+    resolve-conflicts:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+                  token: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Configure git identity
+              run: |
+                  git config user.name "github-actions[bot]"
+                  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+            - name: Detect and auto-resolve merge conflicts
+              uses: actions/github-script@v7
+              with:
+                  script: |
+                      const { execSync } = require("child_process");
+                      const owner = context.repo.owner;
+                      const repo = context.repo.repo;
+
+                      function run(cmd) {
+                        core.info(`$ ${cmd}`);
+                        return execSync(cmd, { encoding: "utf8" });
+                      }
+
+                      function runSafe(cmd) {
+                        try {
+                          const out = run(cmd);
+                          return { ok: true, out };
+                        } catch (e) {
+                          return { ok: false, out: e.stderr || e.message };
+                        }
+                      }
+
+                      // Collect the PRs to process — paginate to handle repos with many open PRs
+                      let prs = [];
+                      if (context.eventName === "pull_request") {
+                        prs = [context.payload.pull_request];
+                      } else {
+                        prs = await github.paginate(github.rest.pulls.list, {
+                          owner,
+                          repo,
+                          state: "open",
+                          base: "main",
+                          per_page: 100,
+                        });
+                      }
+
+                      core.info(`Processing ${prs.length} PR(s)...`);
+
+                      for (const pr of prs) {
+                        const branch = pr.head.ref;
+                        const prNum = pr.number;
+
+                        core.info(`\n=== PR #${prNum}: ${branch} ===`);
+
+                        // Skip cross-fork PRs — we cannot push to a fork
+                        const headRepo = pr.head.repo ? pr.head.repo.full_name : null;
+                        const baseRepo = pr.base.repo ? pr.base.repo.full_name : null;
+                        if (headRepo && baseRepo && headRepo !== baseRepo) {
+                          core.info(`Skipping fork PR #${prNum} (${headRepo} → ${baseRepo})`);
+                          continue;
+                        }
+
+                        try {
+                          // Fetch latest state of both branches
+                          run(`git fetch origin ${branch} main`);
+
+                          // Work on a clean local copy of the PR branch
+                          run(`git checkout -B ${branch} origin/${branch}`);
+
+                          // Dry-run merge to detect conflicts without committing
+                          const testMerge = runSafe("git merge origin/main --no-commit --no-ff");
+
+                          if (testMerge.ok) {
+                            // No conflicts — undo the staged (but uncommitted) merge and move on
+                            run(`git reset --hard origin/${branch}`);
+                            core.info(`PR #${prNum}: No merge conflicts detected — nothing to do.`);
+                            continue;
+                          }
+
+                          // Capture the list of conflicting files before discarding the test merge
+                          const conflictListResult = runSafe("git diff --name-only --diff-filter=U");
+                          const conflictFiles = conflictListResult.ok
+                            ? conflictListResult.out.trim().split("\n").filter(Boolean)
+                            : [];
+                          core.info(
+                            `PR #${prNum}: Conflicts in: ${conflictFiles.join(", ") || "(unknown)"}`,
+                          );
+
+                          // Reset to pristine PR branch state before the real merge attempt
+                          run(`git reset --hard origin/${branch}`);
+
+                          core.info(
+                            `PR #${prNum}: Merge conflicts detected. Attempting auto-resolution (-X ours)...`,
+                          );
+
+                          // Resolve conflicts by favouring the PR branch's version
+                          const resolved = runSafe(
+                            `git merge origin/main -X ours --no-edit -m "chore: auto-resolve merge conflicts with main [skip ci]"`,
+                          );
+
+                          if (!resolved.ok) {
+                            // Clean up any in-progress merge before throwing
+                            runSafe("git merge --abort");
+                            run(`git reset --hard origin/${branch}`);
+                            throw new Error(resolved.out);
+                          }
+
+                          run(`git push origin ${branch}`);
+                          core.info(`PR #${prNum}: Conflicts resolved and pushed successfully.`);
+
+                          const fileList =
+                            conflictFiles.length > 0
+                              ? `\n\n**Affected files:**\n${conflictFiles.map((f) => `- \`${f}\``).join("\n")}`
+                              : "";
+
+                          await github.rest.issues.createComment({
+                            owner,
+                            repo,
+                            issue_number: prNum,
+                            body: [
+                              "🤖 **Merge conflicts auto-resolved**",
+                              "",
+                              `Merge conflicts between \`${branch}\` and \`main\` were detected and automatically resolved.`,
+                              "The PR branch's version was kept for all conflicting sections." + fileList,
+                              "",
+                              "> ⚠️ Please review the resolved changes before merging to confirm correctness.",
+                            ].join("\n"),
+                          });
+                        } catch (err) {
+                          core.warning(`PR #${prNum}: Could not auto-resolve — ${err.message}`);
+
+                          try {
+                            await github.rest.issues.createComment({
+                              owner,
+                              repo,
+                              issue_number: prNum,
+                              body: [
+                                "⚠️ **Merge conflict detected — manual resolution required**",
+                                "",
+                                `This PR has merge conflicts with \`main\` that could not be automatically resolved.`,
+                                "Please resolve the conflicts manually and push to this branch.",
+                              ].join("\n"),
+                            });
+                          } catch (commentErr) {
+                            core.warning(
+                              `Could not post comment on PR #${prNum}: ${commentErr.message}`,
+                            );
+                          }
+                        }
+                      }
