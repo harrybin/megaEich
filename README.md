@@ -128,6 +128,18 @@ megaEich/
 
 Pure vanilla **HTML5 Canvas + JavaScript**. No frameworks, no dependencies, no build tools.
 
+## Agentic CI Issue Auto-Close
+
+The repository includes an agentic GitHub Actions workflow that runs tests on every push.
+
+On pushes to `main`, if tests pass, it will close issues referenced in the commit message using keywords like:
+
+- `Fixes #123`
+- `Closes #45`
+- `Resolves #78`
+
+If tests fail and remain unresolved after a remediation retry, the workflow creates a tracking issue for follow-up instead of closing anything.
+
 ## License
 
 MIT
