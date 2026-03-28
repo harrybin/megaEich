@@ -1,0 +1,11 @@
+{
+    "name": "megaeich",
+    "version": "1.0.0",
+    "description": "Mega Eichhörnchen arcade game with hazards",
+    "scripts": {
+        "test": "jest"
+    },
+    "devDependencies": {
+        "jest": "^29.0.0"
+    }
+}
