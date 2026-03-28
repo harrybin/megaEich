@@ -90,7 +90,7 @@ describe("HazardSystem", () => {
     });
 
     test("should detect collision at hazard right edge", () => {
-      const player = { x: 129, y: 190, w: 36, h: 44 };
+      const player = { x: 120, y: 190, w: 36, h: 44 }; // 120 < hazardRight=125, overlaps right edge
       const hazard = hazardSystem.checkCollision(player);
       expect(hazard).not.toBeNull();
     });
@@ -115,8 +115,8 @@ describe("HazardSystem", () => {
     });
 
     test("should return first collision (multiple overlaps)", () => {
-      // Player overlaps both hazards
-      const player = { x: 150, y: 190, w: 150, h: 44 };
+      // Player overlaps both hazards: fire at [75,125] and trap at [275,325]
+      const player = { x: 80, y: 190, w: 220, h: 44 }; // playerLeft=80<125, playerRight=300>275
       const hazard = hazardSystem.checkCollision(player);
       expect(hazard.type).toBe("fire"); // First one in array
     });
