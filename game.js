@@ -5,8 +5,29 @@
 // ─────────────────────────────────────────────
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
+const bgMusic = document.getElementById("bgMusic");
 const W = canvas.width; // 800
 const H = canvas.height; // 500
+
+let hasStartedMusic = false;
+
+function tryStartMusic() {
+  if (!bgMusic || hasStartedMusic) return;
+  bgMusic.muted = false;
+  bgMusic.volume = 0.45;
+  const playPromise = bgMusic.play();
+  if (playPromise && typeof playPromise.then === "function") {
+    playPromise
+      .then(() => {
+        hasStartedMusic = true;
+      })
+      .catch(() => {
+        // Ignore autoplay errors; next user interaction will retry.
+      });
+  } else {
+    hasStartedMusic = true;
+  }
+}
 
 // ─────────────────────────────────────────────
 //  CONSTANTS
@@ -34,6 +55,7 @@ const MVP_NAMES = [
 // ─────────────────────────────────────────────
 const keys = {};
 window.addEventListener("keydown", (e) => {
+  tryStartMusic();
   keys[e.code] = true;
   if (
     ["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(
@@ -48,6 +70,10 @@ window.addEventListener("keydown", (e) => {
 });
 window.addEventListener("keyup", (e) => {
   keys[e.code] = false;
+});
+
+window.addEventListener("pointerdown", () => {
+  tryStartMusic();
 });
 
 // ─────────────────────────────────────────────
