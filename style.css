@@ -49,6 +49,13 @@ body::before {
   width: 100%;
 }
 
+#utility-bar {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 2px;
+}
+
 #gameCanvas {
   display: block;
   border: 2px solid #f5a623;
@@ -65,9 +72,7 @@ body::before {
 }
 
 #fullscreen-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
+  position: relative;
   min-width: 122px;
   padding: 8px 12px;
   border: 2px solid #f5a623;
@@ -216,8 +221,6 @@ body.mobile-controls-enabled #controls-hint {
   }
 
   #fullscreen-btn {
-    top: 8px;
-    right: 8px;
     min-width: 108px;
     padding: 7px 10px;
     font-size: 11px;

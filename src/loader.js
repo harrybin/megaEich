@@ -32,6 +32,71 @@ import BackgroundRenderer from './drawing-background.js';
 // Import game engine
 import GameEngine from './game-engine.js';
 
+function initFullscreenControl() {
+  const btn = document.getElementById("fullscreen-btn");
+  const target = document.getElementById("game-shell") || document.documentElement;
+  if (!btn || !target) return;
+
+  const requestFullscreen =
+    target.requestFullscreen ||
+    target.webkitRequestFullscreen ||
+    target.msRequestFullscreen;
+  const exitFullscreen =
+    document.exitFullscreen ||
+    document.webkitExitFullscreen ||
+    document.msExitFullscreen;
+
+  if (typeof requestFullscreen !== "function" || typeof exitFullscreen !== "function") {
+    btn.hidden = true;
+    return;
+  }
+
+  const getFullscreenElement = () =>
+    document.fullscreenElement ||
+    document.webkitFullscreenElement ||
+    document.msFullscreenElement ||
+    null;
+
+  const updateLabel = () => {
+    const active = getFullscreenElement() === target;
+    btn.textContent = active ? "Exit Fullscreen" : "Fullscreen";
+    btn.setAttribute("aria-pressed", active ? "true" : "false");
+  };
+
+  const toggleFullscreen = async () => {
+    try {
+      const active = getFullscreenElement() === target;
+      if (active) {
+        await exitFullscreen.call(document);
+      } else {
+        await requestFullscreen.call(target);
+      }
+    } catch (error) {
+      console.warn("Fullscreen toggle failed:", error);
+    }
+    updateLabel();
+  };
+
+  btn.addEventListener("pointerdown", (e) => {
+    e.stopPropagation();
+  });
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    toggleFullscreen();
+  });
+
+  window.addEventListener("keydown", (e) => {
+    if (e.code === "KeyF" && !e.repeat) {
+      e.preventDefault();
+      toggleFullscreen();
+    }
+  });
+
+  document.addEventListener("fullscreenchange", updateLabel);
+  document.addEventListener("webkitfullscreenchange", updateLabel);
+  updateLabel();
+}
+
 // Make classes available globally
 window.Player = Player;
 window.HazardSystem = HazardSystem;
@@ -56,6 +121,8 @@ window.GameEngine = GameEngine;
 
 // Wait for DOM ready and initialize game
 function initializeGame() {
+  initFullscreenControl();
+
   // Check for required globals
   if (!window.GAME_CONFIG) {
     console.error('GAME_CONFIG not found! Ensure game-config.js is loaded.');

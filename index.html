@@ -12,6 +12,8 @@
     <div id="wrapper">
         <div id="game-shell">
             <canvas id="gameCanvas" width="800" height="500"></canvas>
+        </div>
+        <div id="utility-bar">
             <button id="fullscreen-btn" type="button" aria-label="Toggle fullscreen" aria-pressed="false">
                 Fullscreen
             </button>
@@ -39,8 +41,8 @@
     </audio>
     <script src="game-config.js"></script>
     <script src="levels.js"></script>
-    <!-- ES6 Module Entry Point (loads all modules and starts game) -->
-    <script type="module" src="src/loader.js"></script>
+    <!-- Runtime entry point -->
+    <script src="game.js"></script>
 </body>
 
 </html>
