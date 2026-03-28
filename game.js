@@ -1192,7 +1192,7 @@ function render() {
 
   // Platforms
   for (const p of platforms) {
-    if (p.x - cameraX > -220 && p.x - cameraX < W + 220) {
+    if (p.x + p.w - cameraX > -220 && p.x - cameraX < W + 220) {
       drawPlatform(p);
     }
   }
