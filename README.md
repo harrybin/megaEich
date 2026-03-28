@@ -53,13 +53,30 @@ Lose all three → Game Over.
 
 ## Levels
 
-Three levels of increasing difficulty that loop for endless play:
+Twenty levels of increasing difficulty that loop for endless play:
 
 | Level | Acorns | Golden Acorns | Power-Ups | MVPs |
 |-------|--------|---------------|-----------|------|
 | 1 | 6 | 1 | 0 | 1 |
 | 2 | 9 | 2 | 1 | 2 |
 | 3 | 12 | 3 | 2 | 3 |
+| 4 | 15 | 4 | 3 | 5 |
+| 5 | 16 | 4 | 3 | 5 |
+| 6 | 17 | 4 | 3 | 5 |
+| 7 | 18 | 5 | 3 | 6 |
+| 8 | 19 | 5 | 3 | 6 |
+| 9 | 20 | 5 | 4 | 6 |
+| 10 | 21 | 6 | 4 | 6 |
+| 11 | 22 | 6 | 4 | 7 |
+| 12 | 23 | 6 | 4 | 7 |
+| 13 | 24 | 7 | 5 | 7 |
+| 14 | 25 | 7 | 5 | 7 |
+| 15 | 26 | 7 | 5 | 8 |
+| 16 | 26 | 8 | 5 | 8 |
+| 17 | 27 | 8 | 5 | 8 |
+| 18 | 28 | 8 | 6 | 8 |
+| 19 | 29 | 8 | 6 | 8 |
+| 20 | 30 | 9 | 6 | 8 |
 
 ## Project Structure
 

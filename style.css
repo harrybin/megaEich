@@ -120,13 +120,6 @@ body::before {
   font-size: 22px;
 }
 
-.touch-btn-pause {
-  width: 110px;
-  height: 64px;
-  border-radius: 14px;
-  font-size: 14px;
-}
-
 #mobile-controls-hint {
   display: none;
   font-size: 11px;
@@ -187,13 +180,8 @@ body.mobile-controls-enabled #controls-hint {
   }
 
   .touch-btn-jump,
-  .touch-btn-pause {
+  .touch-actions .touch-btn {
     width: 118px;
     height: 90px;
-  }
-
-  .touch-btn-pause {
-    width: 92px;
-    height: 56px;
   }
 }
