@@ -651,6 +651,7 @@ function updateLifeLossAnimation() {
 
   if (lives <= 0) {
     state = "GAME_OVER";
+    notifyHighscorePanel(score, level);
     return;
   }
 
@@ -1757,7 +1758,49 @@ function togglePause() {
   else if (state === "PAUSED") state = "PLAYING";
 }
 
+// ─────────────────────────────────────────────
+//  HIGHSCORE PANEL
+// ─────────────────────────────────────────────
+function notifyHighscorePanel(finalScore, finalLevel) {
+  const panel = document.getElementById("highscore-panel");
+  const display = document.getElementById("highscore-score-display");
+  const valueEl = document.getElementById("highscore-score-value");
+  if (!panel || !display || !valueEl) return;
+
+  valueEl.textContent = `${finalScore} pts  (Level ${finalLevel})`;
+  display.hidden = false;
+
+  // Smooth-scroll the panel into view so the user sees it.
+  panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+function initHighscoreCopyBtn() {
+  const btn = document.getElementById("highscore-copy-btn");
+  if (!btn) return;
+  btn.addEventListener("click", () => {
+    const valueEl = document.getElementById("highscore-score-value");
+    if (!valueEl) return;
+    const text = `🐿 MegaEich score: ${valueEl.textContent.trim()}`;
+    const prev = btn.textContent;
+    navigator.clipboard.writeText(text).then(
+      () => {
+        btn.textContent = "✔ Copied!";
+        setTimeout(() => {
+          btn.textContent = prev;
+        }, 1500);
+      },
+      () => {
+        btn.textContent = "⚠ Copy manually";
+        setTimeout(() => {
+          btn.textContent = prev;
+        }, 2500);
+      },
+    );
+  });
+}
+
 initMobileControls();
 initFullscreenControl();
+initHighscoreCopyBtn();
 initBgStars();
 gameLoop();

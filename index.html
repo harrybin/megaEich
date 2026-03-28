@@ -45,10 +45,87 @@
     <audio id="bgMusic" loop>
         <source src="assets/Mega Eichhörnchen .mp3" type="audio/mpeg">
     </audio>
+
+    <!--
+        HIGHSCORE PANEL
+        ───────────────
+        Placed outside #wrapper so it is never captured by native fullscreen.
+        CSS hides it when body.fullscreen-active is set (covers both native
+        fullscreen and pseudo-fullscreen, both orientations).
+
+        SETUP REQUIRED — see GISCUS_SETUP.md for full instructions:
+          1. Enable GitHub Discussions on the harrybin/megaEich repository.
+          2. Create a "Highscores" Discussions category (Announcement type).
+          3. Visit https://giscus.app/ → configure for harrybin/megaEich,
+             mapping "specific" with term "🏆 Highscores".
+          4. Replace the two REPLACE_WITH_… placeholders below with the
+             data-repo-id and data-category-id values from giscus.app,
+             then remove the #giscus-setup-notice element.
+    -->
+    <section id="highscore-panel" aria-label="Highscores">
+        <div id="highscore-header">
+            <h2>🏆 Highscores</h2>
+            <p id="highscore-subtitle">
+                Log in with GitHub to post your score — stored in GitHub Discussions, entirely optional.
+            </p>
+        </div>
+
+        <div id="highscore-score-display" hidden>
+            <span id="highscore-score-label">Your last score:</span>
+            <strong id="highscore-score-value"></strong>
+            <button id="highscore-copy-btn" type="button" aria-label="Copy score to clipboard">
+                📋 Copy
+            </button>
+        </div>
+
+        <!-- Shown only when giscus is not yet configured (placeholders present) -->
+        <div id="giscus-setup-notice" hidden>
+            <p>
+                ⚙️ Highscore posting is not yet configured.
+                See <a href="GISCUS_SETUP.md" target="_blank" rel="noopener">GISCUS_SETUP.md</a>
+                for setup instructions.
+            </p>
+        </div>
+
+        <div id="giscus-container"></div>
+    </section>
+
     <script src="game-config.js"></script>
     <script src="levels.js"></script>
     <!-- Runtime entry point -->
     <script src="game.js"></script>
+
+    <!-- Giscus loader — only activates when repo IDs are filled in -->
+    <script>
+        (function () {
+            const REPO_ID = "REPLACE_WITH_REPO_ID";
+            const CATEGORY_ID = "REPLACE_WITH_CATEGORY_ID";
+            const configured =
+                !REPO_ID.startsWith("REPLACE_") && !CATEGORY_ID.startsWith("REPLACE_");
+
+            if (configured) {
+                const s = document.createElement("script");
+                s.src = "https://giscus.app/client.js";
+                s.setAttribute("data-repo", "harrybin/megaEich");
+                s.setAttribute("data-repo-id", REPO_ID);
+                s.setAttribute("data-category", "Highscores");
+                s.setAttribute("data-category-id", CATEGORY_ID);
+                s.setAttribute("data-mapping", "specific");
+                s.setAttribute("data-term", "🏆 Highscores");
+                s.setAttribute("data-strict", "0");
+                s.setAttribute("data-reactions-enabled", "1");
+                s.setAttribute("data-emit-metadata", "0");
+                s.setAttribute("data-input-position", "top");
+                s.setAttribute("data-theme", "dark");
+                s.setAttribute("data-lang", "en");
+                s.setAttribute("crossorigin", "anonymous");
+                s.async = true;
+                document.getElementById("giscus-container").appendChild(s);
+            } else {
+                document.getElementById("giscus-setup-notice").hidden = false;
+            }
+        })();
+    </script>
 </body>
 
 </html>
