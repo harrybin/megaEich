@@ -10,7 +10,12 @@
 
 <body>
     <div id="wrapper">
-        <canvas id="gameCanvas" width="800" height="500"></canvas>
+        <div id="game-shell">
+            <canvas id="gameCanvas" width="800" height="500"></canvas>
+            <button id="fullscreen-btn" type="button" aria-label="Toggle fullscreen" aria-pressed="false">
+                Fullscreen
+            </button>
+        </div>
         <div id="mobile-controls" aria-label="Touch controls" role="group">
             <div class="touch-pad" aria-label="Movement controls">
                 <button class="touch-btn" data-touch-key="ArrowLeft" aria-label="Move left">◀</button>

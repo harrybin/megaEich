@@ -44,6 +44,11 @@ body::before {
   padding: 12px;
 }
 
+#game-shell {
+  position: relative;
+  width: 100%;
+}
+
 #gameCanvas {
   display: block;
   border: 2px solid #f5a623;
@@ -57,6 +62,43 @@ body::before {
   width: 100%;
   height: auto;
   touch-action: none;
+}
+
+#fullscreen-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  min-width: 122px;
+  padding: 8px 12px;
+  border: 2px solid #f5a623;
+  border-radius: 10px;
+  background: rgba(10, 16, 26, 0.88);
+  color: #f5a623;
+  font-family: "Courier New", monospace;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 0 14px rgba(245, 166, 35, 0.24);
+  z-index: 5;
+}
+
+#fullscreen-btn:hover {
+  background: rgba(24, 36, 52, 0.92);
+}
+
+#fullscreen-btn:active {
+  transform: translateY(1px);
+}
+
+#fullscreen-btn:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+#fullscreen-btn[hidden] {
+  display: none;
 }
 
 #controls-hint {
@@ -171,6 +213,14 @@ body.mobile-controls-enabled #controls-hint {
   #wrapper {
     padding: 8px;
     gap: 10px;
+  }
+
+  #fullscreen-btn {
+    top: 8px;
+    right: 8px;
+    min-width: 108px;
+    padding: 7px 10px;
+    font-size: 11px;
   }
 
   .touch-pad .touch-btn {

@@ -6,6 +6,8 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 const bgMusic = document.getElementById("bgMusic");
+const fullscreenBtn = document.getElementById("fullscreen-btn");
+const fullscreenTarget = document.getElementById("game-shell");
 const W = canvas.width; // 800
 const H = canvas.height; // 500
 
@@ -177,6 +179,84 @@ function initMobileControls() {
 
   // Avoid stuck movement when a touch is interrupted by OS gestures.
   window.addEventListener("blur", releaseMobileKeys);
+}
+
+function supportsFullscreen() {
+  if (!fullscreenTarget) return false;
+  return Boolean(
+    fullscreenTarget.requestFullscreen ||
+      fullscreenTarget.webkitRequestFullscreen ||
+      document.exitFullscreen ||
+      document.webkitExitFullscreen,
+  );
+}
+
+function getFullscreenElement() {
+  return document.fullscreenElement || document.webkitFullscreenElement || null;
+}
+
+function updateFullscreenButtonLabel() {
+  if (!fullscreenBtn) return;
+  const isFullscreen = getFullscreenElement() === fullscreenTarget;
+  fullscreenBtn.textContent = isFullscreen ? "Exit Fullscreen" : "Fullscreen";
+  fullscreenBtn.setAttribute("aria-pressed", isFullscreen ? "true" : "false");
+}
+
+async function toggleFullscreen() {
+  if (!fullscreenTarget) return;
+
+  try {
+    if (getFullscreenElement() === fullscreenTarget) {
+      if (document.exitFullscreen) {
+        await document.exitFullscreen();
+      } else if (document.webkitExitFullscreen) {
+        document.webkitExitFullscreen();
+      }
+      return;
+    }
+
+    if (fullscreenTarget.requestFullscreen) {
+      await fullscreenTarget.requestFullscreen();
+    } else if (fullscreenTarget.webkitRequestFullscreen) {
+      fullscreenTarget.webkitRequestFullscreen();
+    }
+  } catch {
+    // If browser blocks fullscreen, keep the game running with no interruption.
+  }
+}
+
+function initFullscreenControls() {
+  if (!fullscreenBtn) return;
+  if (!supportsFullscreen()) {
+    fullscreenBtn.hidden = true;
+    return;
+  }
+
+  updateFullscreenButtonLabel();
+
+  fullscreenBtn.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  });
+
+  fullscreenBtn.addEventListener(
+    "touchstart",
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    },
+    { passive: false },
+  );
+
+  fullscreenBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    tryStartMusic();
+    toggleFullscreen();
+  });
+
+  document.addEventListener("fullscreenchange", updateFullscreenButtonLabel);
+  document.addEventListener("webkitfullscreenchange", updateFullscreenButtonLabel);
 }
 
 window.addEventListener("keydown", (e) => {
@@ -440,8 +520,13 @@ function checkHazards() {
 
   for (const h of hazards) {
     if (!h.active) continue;
-    // AABB collision
-    if (cx > h.x && cx < h.x + h.w && cy > h.y - h.h && cy < h.y + h.h) {
+    // AABB collision - hazard is centered at (h.x, h.y)
+    const hLeft = h.x - h.w / 2;
+    const hRight = h.x + h.w / 2;
+    const hTop = h.y - h.h;
+    const hBottom = h.y + h.h;
+    
+    if (cx > hLeft && cx < hRight && cy > hTop && cy < hBottom) {
       h.active = false;
       if (h.type === "fire") {
         loseLife();
@@ -917,30 +1002,58 @@ function drawMVP(x, y, name, bounceTimer, met) {
 //  DRAW: HAZARDS
 // ─────────────────────────────────────────────
 function drawFire(x, y, w, h) {
-  const flicker = (Math.sin(tick * 0.15) + 1) * 0.5;
+  const flicker = Math.sin(tick * 0.15) * 4 + 2; // Vertical flicker
+  const flicker2 = Math.sin(tick * 0.22 + 2) * 3;
   ctx.save();
   ctx.translate(x, y);
-  // Flame base (red/orange)
+  
+  // Left flame
   ctx.beginPath();
-  ctx.moveTo(0, h);
-  ctx.quadraticCurveTo((-w / 2) * 0.6, h * flicker, -w / 2, -h * 0.3);
-  ctx.quadraticCurveTo(-w / 3, -h * 0.8, 0, -h);
-  ctx.quadraticCurveTo(w / 3, -h * 0.8, w / 2, -h * 0.3);
-  ctx.quadraticCurveTo((w / 2) * 0.6, h * flicker, 0, h);
-  ctx.fillStyle = "#FF6B35";
+  ctx.moveTo(-w / 2, 0);
+  ctx.quadraticCurveTo(-w / 2 - 5, -h * 0.4 + flicker, -w / 3, -h * 0.8);
+  ctx.quadraticCurveTo(-w / 4, -h + flicker2, 0, -h - 2);
+  ctx.quadraticCurveTo(-w / 4, -h * 0.5, -w / 2, 0);
+  ctx.fillStyle = "#FF4500";
   ctx.fill();
-  // Flame tip (yellow)
+  
+  // Center flame
   ctx.beginPath();
-  ctx.moveTo(-w / 4, -h * 0.5);
-  ctx.quadraticCurveTo(-w / 3, -h * 0.9, 0, -h * 0.6);
-  ctx.quadraticCurveTo(w / 3, -h * 0.9, w / 4, -h * 0.5);
-  ctx.fillStyle = "#FFD93D";
+  ctx.moveTo(-w / 4, 0);
+  ctx.quadraticCurveTo(-w / 4 - 3, -h * 0.5 + flicker2, 0, -h * 1.2);
+  ctx.quadraticCurveTo(w / 4 + 3, -h * 0.5 + flicker2, w / 4, 0);
+  ctx.fillStyle = "#FF8C00";
   ctx.fill();
-  // Glow
+  
+  // Right flame
   ctx.beginPath();
-  ctx.arc(0, -h * 0.3, w * 0.7, 0, Math.PI * 2);
-  ctx.fillStyle = `rgba(255,107,53,${0.2 + 0.1 * flicker})`;
+  ctx.moveTo(w / 2, 0);
+  ctx.quadraticCurveTo(w / 4, -h + flicker2, w / 3, -h * 0.8);
+  ctx.quadraticCurveTo(w / 2 + 5, -h * 0.4 + flicker, w / 2, 0);
+  ctx.fillStyle = "#FF4500";
   ctx.fill();
+  
+  // Yellow inner flame
+  ctx.beginPath();
+  ctx.moveTo(-w / 3, -h * 0.2);
+  ctx.quadraticCurveTo(-w / 4, -h * 0.6 + flicker * 0.5, 0, -h * 0.9);
+  ctx.quadraticCurveTo(w / 4, -h * 0.6 + flicker * 0.5, w / 3, -h * 0.2);
+  ctx.quadraticCurveTo(w / 4, -h * 0.4, 0, -h * 0.4);
+  ctx.quadraticCurveTo(-w / 4, -h * 0.4, -w / 3, -h * 0.2);
+  ctx.fillStyle = "#FFD700";
+  ctx.fill();
+  
+  // Bright yellow core
+  ctx.beginPath();
+  ctx.ellipse(0, -h * 0.5, w * 0.25, h * 0.3, 0, 0, Math.PI * 2);
+  ctx.fillStyle = "#FFFF99";
+  ctx.fill();
+  
+  // Orange glow
+  ctx.beginPath();
+  ctx.arc(0, -h * 0.3, w * 0.9, 0, Math.PI * 2);
+  ctx.fillStyle = `rgba(255, 140, 0, ${0.25 + 0.15 * (Math.sin(tick * 0.08) + 1)})`;
+  ctx.fill();
+  
   ctx.restore();
 }
 
@@ -1456,5 +1569,6 @@ function togglePause() {
 }
 
 initMobileControls();
+initFullscreenControls();
 initBgStars();
 gameLoop();
