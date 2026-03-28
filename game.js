@@ -681,10 +681,10 @@ function checkHazards() {
 
     // AABB collision
     if (
-      playerRight > hazardLeft &&
-      playerLeft < hazardRight &&
-      playerBottom > hazardTop &&
-      playerTop < hazardBottom
+      playerRight >= hazardLeft &&
+      playerLeft <= hazardRight &&
+      playerBottom >= hazardTop &&
+      playerTop <= hazardBottom
     ) {
       h.active = false;
       if (h.type === "fire") {
