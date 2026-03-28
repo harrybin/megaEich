@@ -9,7 +9,10 @@
         "test:all": "npm run test:unit && npm run test:e2e"
     },
     "jest": {
-        "testPathIgnorePatterns": ["/node_modules/", "/e2e/"]
+        "testPathIgnorePatterns": [
+            "/node_modules/",
+            "/e2e/"
+        ]
     },
     "devDependencies": {
         "@playwright/test": "^1.58.2",

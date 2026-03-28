@@ -51,10 +51,10 @@ class HazardSystem {
 
       // AABB collision detection
       if (
-        playerRight > hazardLeft &&
-        playerLeft < hazardRight &&
-        playerBottom > hazardTop &&
-        playerTop < hazardBottom
+        playerRight >= hazardLeft &&
+        playerLeft <= hazardRight &&
+        playerBottom >= hazardTop &&
+        playerTop <= hazardBottom
       ) {
         return h;
       }
