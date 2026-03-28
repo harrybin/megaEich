@@ -55,10 +55,17 @@ const MVP_NAMES = [
 // ─────────────────────────────────────────────
 const keys = {};
 let mobileControlsEnabled = false;
+const touchKeyPressCount = {
+  ArrowLeft: 0,
+  ArrowRight: 0,
+  Space: 0,
+};
+const activeTouchPointers = new Map();
 
 function detectMobileBrowser() {
   return (
     window.matchMedia("(pointer: coarse)").matches ||
+    "ontouchstart" in window ||
     navigator.maxTouchPoints > 0 ||
     /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
   );
@@ -68,10 +75,32 @@ function setKeyState(code, pressed) {
   keys[code] = pressed;
 }
 
+function applyTouchKeyState(code) {
+  setKeyState(code, touchKeyPressCount[code] > 0);
+}
+
+function pressTouchKey(code, pointerId) {
+  if (!touchKeyPressCount.hasOwnProperty(code)) return;
+  if (activeTouchPointers.has(pointerId)) releasePointerTouch(pointerId);
+  activeTouchPointers.set(pointerId, code);
+  touchKeyPressCount[code]++;
+  applyTouchKeyState(code);
+}
+
+function releasePointerTouch(pointerId) {
+  const code = activeTouchPointers.get(pointerId);
+  if (!code) return;
+  activeTouchPointers.delete(pointerId);
+  touchKeyPressCount[code] = Math.max(0, touchKeyPressCount[code] - 1);
+  applyTouchKeyState(code);
+}
+
 function releaseMobileKeys() {
-  setKeyState("ArrowLeft", false);
-  setKeyState("ArrowRight", false);
-  setKeyState("Space", false);
+  activeTouchPointers.clear();
+  Object.keys(touchKeyPressCount).forEach((code) => {
+    touchKeyPressCount[code] = 0;
+    setKeyState(code, false);
+  });
 }
 
 function bindTouchControlButton(btn) {
@@ -86,13 +115,16 @@ function bindTouchControlButton(btn) {
       togglePause();
       return;
     }
-    setKeyState(key, true);
+    if (typeof e.pointerId === "number") {
+      pressTouchKey(key, e.pointerId);
+      btn.setPointerCapture(e.pointerId);
+    }
   };
 
   const release = (e) => {
     e.preventDefault();
     if (isPauseAction) return;
-    setKeyState(key, false);
+    if (typeof e.pointerId === "number") releasePointerTouch(e.pointerId);
   };
 
   btn.addEventListener("pointerdown", press);
@@ -114,9 +146,6 @@ function initMobileControls() {
 
   // Avoid stuck movement when a touch is interrupted by OS gestures.
   window.addEventListener("blur", releaseMobileKeys);
-  window.addEventListener("pointerup", (e) => {
-    if (e.pointerType !== "mouse") releaseMobileKeys();
-  });
 }
 
 window.addEventListener("keydown", (e) => {

@@ -68,16 +68,24 @@ body::before {
 
 #mobile-controls {
   display: none;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 10px;
   width: 100%;
   justify-content: space-between;
   align-items: end;
   gap: 12px;
+  padding: 0 14px;
+  z-index: 30;
+  pointer-events: none;
 }
 
 .touch-pad,
 .touch-actions {
   display: flex;
-  gap: 10px;
+  gap: 12px;
+  pointer-events: auto;
 }
 
 .touch-btn {
@@ -99,21 +107,24 @@ body::before {
 }
 
 .touch-pad .touch-btn {
-  width: 62px;
-  height: 62px;
-  font-size: 26px;
+  width: 78px;
+  height: 78px;
+  border-radius: 40px;
+  font-size: 30px;
 }
 
 .touch-btn-jump {
-  width: 92px;
-  height: 62px;
-  font-size: 16px;
+  width: 110px;
+  height: 78px;
+  border-radius: 40px;
+  font-size: 18px;
 }
 
 .touch-btn-pause {
-  width: 92px;
-  height: 62px;
-  font-size: 14px;
+  width: 88px;
+  height: 52px;
+  border-radius: 12px;
+  font-size: 13px;
 }
 
 #mobile-controls-hint {
@@ -125,12 +136,16 @@ body::before {
 }
 
 body.mobile-controls-enabled {
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 body.mobile-controls-enabled #mobile-controls,
 body.mobile-controls-enabled #mobile-controls-hint {
   display: flex;
+}
+
+body.mobile-controls-enabled #wrapper {
+  padding-bottom: 116px;
 }
 
 body.mobile-controls-enabled #controls-hint {
@@ -151,14 +166,19 @@ body.mobile-controls-enabled #controls-hint {
   }
 
   .touch-pad .touch-btn {
-    width: 56px;
-    height: 56px;
-    font-size: 24px;
+    width: 70px;
+    height: 70px;
+    font-size: 28px;
   }
 
   .touch-btn-jump,
   .touch-btn-pause {
-    width: 86px;
-    height: 56px;
+    width: 94px;
+    height: 70px;
+  }
+
+  .touch-btn-pause {
+    width: 78px;
+    height: 48px;
   }
 }
