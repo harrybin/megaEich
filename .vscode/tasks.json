@@ -7,5 +7,24 @@
             "command": "Start-Process index.html",
             "problemMatcher": []
         }
-    ]
+    ,
+    {
+      "label": "Run All Tests",
+      "type": "shell",
+      "command": "npm run test:all",
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": false,
+        "clear": true
+      },
+      "problemMatcher": []
+    }
+  ]
 }

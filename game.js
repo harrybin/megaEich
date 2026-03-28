@@ -159,7 +159,7 @@ function initMobileControls() {
   if (!controls) return;
 
   mobileControlsEnabled = detectMobileBrowser();
-  const touchButtons = controls.querySelectorAll(".touch-btn");
+  const touchButtons = controls.querySelectorAll(".touch-btn[data-touch-key]");
   touchButtons.forEach((btn) => bindTouchControlButton(btn));
 
   if (mobileControlsEnabled)
@@ -181,6 +181,7 @@ function initMobileControls() {
 
 function initFullscreenControl() {
   const btn = document.getElementById("fullscreen-btn");
+  const inlineBtn = document.getElementById("fullscreen-inline-btn");
   const target = document.getElementById("wrapper") || document.documentElement;
   if (!btn || !target) return;
 
@@ -236,11 +237,19 @@ function initFullscreenControl() {
     refreshPseudoViewport();
   };
 
+  const updateInlineButton = (active) => {
+    if (!inlineBtn) return;
+    inlineBtn.hidden = !(active && isMobileLike);
+    inlineBtn.setAttribute("aria-pressed", active ? "true" : "false");
+  };
+
   const updateFullscreenLabel = () => {
     const active =
       getFullscreenElement() === target || isPseudoFullscreenActive();
     btn.textContent = active ? "Exit Fullscreen" : "Fullscreen";
     btn.setAttribute("aria-pressed", active ? "true" : "false");
+    document.body.classList.toggle("fullscreen-active", active);
+    updateInlineButton(active);
   };
 
   const toggleFullscreen = async () => {
@@ -307,6 +316,36 @@ function initFullscreenControl() {
     e.stopPropagation();
     toggleFullscreen();
   });
+
+  if (inlineBtn) {
+    inlineBtn.addEventListener("pointerdown", (e) => {
+      e.stopPropagation();
+    });
+
+    inlineBtn.addEventListener(
+      "touchstart",
+      (e) => {
+        e.stopPropagation();
+        if (e.cancelable) e.preventDefault();
+      },
+      { passive: false },
+    );
+
+    inlineBtn.addEventListener(
+      "touchend",
+      (e) => {
+        e.stopPropagation();
+        if (e.cancelable) e.preventDefault();
+        toggleFullscreen();
+      },
+      { passive: false },
+    );
+
+    inlineBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      toggleFullscreen();
+    });
+  }
 
   window.addEventListener("keydown", (e) => {
     if (e.code === "KeyF" && !e.repeat) {

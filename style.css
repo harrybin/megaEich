@@ -134,10 +134,17 @@ body.mobile-controls-enabled #utility-bar {
 }
 
 .touch-pad,
+.touch-middle,
 .touch-actions {
   display: flex;
   gap: 14px;
   pointer-events: auto;
+}
+
+.touch-middle {
+  align-items: center;
+  justify-content: center;
+  min-width: 72px;
 }
 
 .touch-btn {
@@ -172,6 +179,20 @@ body.mobile-controls-enabled #utility-bar {
   font-size: 22px;
 }
 
+.touch-btn-back {
+  min-width: 84px;
+  height: 64px;
+  border-radius: 32px;
+  font-size: 14px;
+  padding: 0 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+#fullscreen-inline-btn[hidden] {
+  display: none;
+}
+
 #mobile-controls-hint {
   display: none;
   font-size: 11px;
@@ -194,6 +215,10 @@ body.mobile-controls-enabled #wrapper {
 }
 
 body.mobile-controls-enabled #controls-hint {
+  display: none;
+}
+
+body.fullscreen-active.mobile-controls-enabled #utility-bar {
   display: none;
 }
 
@@ -252,6 +277,27 @@ body.pseudo-fullscreen.mobile-controls-enabled #mobile-controls {
   z-index: 60;
 }
 
+body.fullscreen-active.mobile-controls-enabled #mobile-controls {
+  display: flex;
+  bottom: 0;
+  align-items: flex-end;
+  min-height: 42vh;
+  padding: 0 14px max(10px, env(safe-area-inset-bottom));
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.78) 0%,
+    rgba(0, 0, 0, 0.55) 42%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  z-index: 75;
+}
+
+body.fullscreen-active.mobile-controls-enabled #wrapper,
+body.fullscreen-active.mobile-controls-enabled #wrapper:fullscreen,
+body.fullscreen-active.mobile-controls-enabled #wrapper:-webkit-full-screen {
+  padding-bottom: 0;
+}
+
 #wrapper:fullscreen,
 #wrapper:-webkit-full-screen {
   display: flex;
@@ -305,6 +351,36 @@ body.mobile-controls-enabled #wrapper:fullscreen #mobile-controls,
 body.mobile-controls-enabled #wrapper:-webkit-full-screen #mobile-controls {
   display: flex;
   z-index: 60;
+}
+
+@media (orientation: landscape) {
+  body.fullscreen-active.mobile-controls-enabled #mobile-controls {
+    min-height: min(52vh, 230px);
+    gap: 10px;
+    padding: 0 10px max(8px, env(safe-area-inset-bottom));
+  }
+
+  body.fullscreen-active.mobile-controls-enabled .touch-pad .touch-btn {
+    width: 78px;
+    height: 78px;
+    border-radius: 39px;
+    font-size: 30px;
+  }
+
+  body.fullscreen-active.mobile-controls-enabled .touch-btn-jump,
+  body.fullscreen-active.mobile-controls-enabled .touch-actions .touch-btn {
+    width: 104px;
+    height: 78px;
+    border-radius: 39px;
+    font-size: 20px;
+  }
+
+  body.fullscreen-active.mobile-controls-enabled .touch-btn-back {
+    min-width: 72px;
+    height: 52px;
+    border-radius: 26px;
+    font-size: 12px;
+  }
 }
 
 @media (hover: none) and (pointer: coarse) {
