@@ -75,6 +75,25 @@ function setKeyState(code, pressed) {
   keys[code] = pressed;
 }
 
+function triggerPrimaryAction() {
+  if (state === "START") {
+    startGame();
+    return;
+  }
+  if (state === "LEVEL_COMPLETE") {
+    level++;
+    loadLevel(level);
+    state = "PLAYING";
+    return;
+  }
+  if (state === "GAME_OVER") {
+    level = 1;
+    score = 0;
+    lives = 3;
+    startGame();
+  }
+}
+
 function applyTouchKeyState(code) {
   setKeyState(code, touchKeyPressCount[code] > 0);
 }
@@ -115,6 +134,7 @@ function bindTouchControlButton(btn) {
       togglePause();
       return;
     }
+    if (key === "Space") triggerPrimaryAction();
     if (typeof e.pointerId === "number") {
       pressTouchKey(key, e.pointerId);
       btn.setPointerCapture(e.pointerId);
@@ -186,7 +206,17 @@ window.addEventListener("keyup", (e) => {
 
 window.addEventListener("pointerdown", () => {
   tryStartMusic();
+  if (mobileControlsEnabled) triggerPrimaryAction();
 });
+
+window.addEventListener(
+  "touchstart",
+  () => {
+    tryStartMusic();
+    triggerPrimaryAction();
+  },
+  { passive: true },
+);
 
 // ─────────────────────────────────────────────
 //  GAME STATE

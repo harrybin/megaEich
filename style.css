@@ -84,7 +84,7 @@ body::before {
 .touch-pad,
 .touch-actions {
   display: flex;
-  gap: 12px;
+  gap: 14px;
   pointer-events: auto;
 }
 
@@ -107,24 +107,24 @@ body::before {
 }
 
 .touch-pad .touch-btn {
-  width: 78px;
-  height: 78px;
-  border-radius: 40px;
-  font-size: 30px;
+  width: 104px;
+  height: 104px;
+  border-radius: 52px;
+  font-size: 38px;
 }
 
 .touch-btn-jump {
-  width: 110px;
-  height: 78px;
-  border-radius: 40px;
-  font-size: 18px;
+  width: 138px;
+  height: 104px;
+  border-radius: 52px;
+  font-size: 22px;
 }
 
 .touch-btn-pause {
-  width: 88px;
-  height: 52px;
-  border-radius: 12px;
-  font-size: 13px;
+  width: 110px;
+  height: 64px;
+  border-radius: 14px;
+  font-size: 14px;
 }
 
 #mobile-controls-hint {
@@ -145,7 +145,7 @@ body.mobile-controls-enabled #mobile-controls-hint {
 }
 
 body.mobile-controls-enabled #wrapper {
-  padding-bottom: calc(116px + env(safe-area-inset-bottom));
+  padding-bottom: calc(150px + env(safe-area-inset-bottom));
 }
 
 body.mobile-controls-enabled #controls-hint {
@@ -163,7 +163,7 @@ body.mobile-controls-enabled #controls-hint {
   }
 
   #wrapper {
-    padding-bottom: calc(116px + env(safe-area-inset-bottom));
+    padding-bottom: calc(150px + env(safe-area-inset-bottom));
   }
 }
 
@@ -181,19 +181,19 @@ body.mobile-controls-enabled #controls-hint {
   }
 
   .touch-pad .touch-btn {
-    width: 70px;
-    height: 70px;
-    font-size: 28px;
+    width: 90px;
+    height: 90px;
+    font-size: 34px;
   }
 
   .touch-btn-jump,
   .touch-btn-pause {
-    width: 94px;
-    height: 70px;
+    width: 118px;
+    height: 90px;
   }
 
   .touch-btn-pause {
-    width: 78px;
-    height: 48px;
+    width: 92px;
+    height: 56px;
   }
 }
