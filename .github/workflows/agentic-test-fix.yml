@@ -1,141 +1,141 @@
 name: Agentic Test Workflow
 
 on:
-  push:
-    branches:
-      - "**"
-  workflow_dispatch:
+    push:
+        branches:
+            - "**"
+    workflow_dispatch:
 
 permissions:
-  contents: read
-  issues: write
+    contents: read
+    issues: write
 
 concurrency:
-  group: agentic-test-${{ github.ref }}
-  cancel-in-progress: true
+    group: agentic-test-${{ github.ref }}
+    cancel-in-progress: true
 
 jobs:
-  test-and-remediate:
-    runs-on: ubuntu-latest
+    test-and-remediate:
+        runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: npm
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "20"
+                  cache: npm
 
-      - name: Install dependencies
-        run: npm ci
+            - name: Install dependencies
+              run: npm ci
 
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps
+            - name: Install Playwright browsers
+              run: npx playwright install --with-deps
 
-      - name: Run tests (first pass)
-        id: first_pass
-        continue-on-error: true
-        shell: bash
-        run: |
-          set +e
-          npm run test:all 2>&1 | tee test-first-pass.log
-          code=${PIPESTATUS[0]}
-          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
-          if [ "$code" -ne 0 ]; then
-            exit 1
-          fi
+            - name: Run tests (first pass)
+              id: first_pass
+              continue-on-error: true
+              shell: bash
+              run: |
+                  set +e
+                  npm run test:all 2>&1 | tee test-first-pass.log
+                  code=${PIPESTATUS[0]}
+                  echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+                  if [ "$code" -ne 0 ]; then
+                    exit 1
+                  fi
 
-      - name: Attempt auto-remediation and re-run tests
-        id: second_pass
-        if: steps.first_pass.outputs.exit_code != '0'
-        continue-on-error: true
-        shell: bash
-        run: |
-          set +e
-          echo "Initial test run failed. Trying self-healing steps..." | tee remediation.log
-          rm -rf node_modules
-          npm ci 2>&1 | tee -a remediation.log
-          npx playwright install --with-deps 2>&1 | tee -a remediation.log
-          npm run test:all 2>&1 | tee test-second-pass.log
-          code=${PIPESTATUS[0]}
-          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
-          if [ "$code" -ne 0 ]; then
-            exit 1
-          fi
+            - name: Attempt auto-remediation and re-run tests
+              id: second_pass
+              if: steps.first_pass.outputs.exit_code != '0'
+              continue-on-error: true
+              shell: bash
+              run: |
+                  set +e
+                  echo "Initial test run failed. Trying self-healing steps..." | tee remediation.log
+                  rm -rf node_modules
+                  npm ci 2>&1 | tee -a remediation.log
+                  npx playwright install --with-deps 2>&1 | tee -a remediation.log
+                  npm run test:all 2>&1 | tee test-second-pass.log
+                  code=${PIPESTATUS[0]}
+                  echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+                  if [ "$code" -ne 0 ]; then
+                    exit 1
+                  fi
 
-      - name: Upload failure logs
-        if: steps.first_pass.outputs.exit_code != '0' && steps.second_pass.outputs.exit_code != '0'
-        uses: actions/upload-artifact@v4
-        with:
-          name: ci-failure-logs-${{ github.sha }}
-          path: |
-            test-first-pass.log
-            remediation.log
-            test-second-pass.log
+            - name: Upload failure logs
+              if: steps.first_pass.outputs.exit_code != '0' && steps.second_pass.outputs.exit_code != '0'
+              uses: actions/upload-artifact@v4
+              with:
+                  name: ci-failure-logs-${{ github.sha }}
+                  path: |
+                      test-first-pass.log
+                      remediation.log
+                      test-second-pass.log
 
-      - name: Create issue for Copilot
-        if: github.ref == 'refs/heads/main' && steps.first_pass.outputs.exit_code != '0' && steps.second_pass.outputs.exit_code != '0'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
-            const sha = context.sha;
-            const shortSha = sha.slice(0, 7);
-            const branch = context.ref.replace("refs/heads/", "");
-            const title = `[Agentic CI] Test failures on ${branch} @ ${shortSha}`;
-            const runUrl = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`;
+            - name: Create issue for Copilot
+              if: github.ref == 'refs/heads/main' && steps.first_pass.outputs.exit_code != '0' && steps.second_pass.outputs.exit_code != '0'
+              uses: actions/github-script@v7
+              with:
+                  script: |
+                      const owner = context.repo.owner;
+                      const repo = context.repo.repo;
+                      const sha = context.sha;
+                      const shortSha = sha.slice(0, 7);
+                      const branch = context.ref.replace("refs/heads/", "");
+                      const title = `[Agentic CI] Test failures on ${branch} @ ${shortSha}`;
+                      const runUrl = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`;
 
-            const openIssues = await github.paginate(github.rest.issues.listForRepo, {
-              owner,
-              repo,
-              state: "open",
-              creator: "github-actions[bot]",
-              per_page: 100,
-            });
+                      const openIssues = await github.paginate(github.rest.issues.listForRepo, {
+                        owner,
+                        repo,
+                        state: "open",
+                        creator: "github-actions[bot]",
+                        per_page: 100,
+                      });
 
-            const existing = openIssues.find((issue) => issue.title === title);
-            if (existing) {
-              core.info(`Issue already exists: #${existing.number}`);
-              return;
-            }
+                      const existing = openIssues.find((issue) => issue.title === title);
+                      if (existing) {
+                        core.info(`Issue already exists: #${existing.number}`);
+                        return;
+                      }
 
-            const body = [
-              "Automated test workflow could not resolve failures after two attempts.",
-              "",
-              `- Branch: ${branch}`,
-              `- Commit: ${sha}`,
-              `- Workflow run: ${runUrl}`,
-              "",
-              "A self-healing pass (clean install + browser reinstall + retry) was attempted and still failed.",
-              "",
-              "@copilot please investigate and propose a fix.",
-            ].join("\n");
+                      const body = [
+                        "Automated test workflow could not resolve failures after two attempts.",
+                        "",
+                        `- Branch: ${branch}`,
+                        `- Commit: ${sha}`,
+                        `- Workflow run: ${runUrl}`,
+                        "",
+                        "A self-healing pass (clean install + browser reinstall + retry) was attempted and still failed.",
+                        "",
+                        "@copilot please investigate and propose a fix.",
+                      ].join("\n");
 
-            try {
-              await github.rest.issues.create({
-                owner,
-                repo,
-                title,
-                body,
-                assignees: ["copilot"],
-              });
-              core.info("Issue created and assigned to copilot.");
-            } catch (error) {
-              core.warning(`Could not assign issue to copilot: ${error.message}`);
-              await github.rest.issues.create({
-                owner,
-                repo,
-                title,
-                body,
-              });
-              core.info("Issue created without assignee.");
-            }
+                      try {
+                        await github.rest.issues.create({
+                          owner,
+                          repo,
+                          title,
+                          body,
+                          assignees: ["copilot"],
+                        });
+                        core.info("Issue created and assigned to copilot.");
+                      } catch (error) {
+                        core.warning(`Could not assign issue to copilot: ${error.message}`);
+                        await github.rest.issues.create({
+                          owner,
+                          repo,
+                          title,
+                          body,
+                        });
+                        core.info("Issue created without assignee.");
+                      }
 
-      - name: Mark workflow as failed when unresolved
-        if: steps.first_pass.outputs.exit_code != '0' && steps.second_pass.outputs.exit_code != '0'
-        run: |
-          echo "Tests failed after remediation attempts. Issue has been created on main branch runs."
-          exit 1
+            - name: Mark workflow as failed when unresolved
+              if: steps.first_pass.outputs.exit_code != '0' && steps.second_pass.outputs.exit_code != '0'
+              run: |
+                  echo "Tests failed after remediation attempts. Issue has been created on main branch runs."
+                  exit 1
