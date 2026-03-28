@@ -181,8 +181,7 @@ function initMobileControls() {
 
 function initFullscreenControl() {
   const btn = document.getElementById("fullscreen-btn");
-  const target =
-    document.getElementById("game-shell") || document.documentElement;
+  const target = document.getElementById("wrapper") || document.documentElement;
   if (!btn || !target) return;
 
   const requestFullscreen =
@@ -256,6 +255,11 @@ function initFullscreenControl() {
       } else if (pseudoActive) {
         disablePseudoFullscreen();
       } else {
+        if (isMobileLike) {
+          mobileControlsEnabled = true;
+          document.body.classList.add("mobile-controls-enabled");
+        }
+
         if (hasNativeFullscreen) {
           await requestFullscreen.call(target);
         }
