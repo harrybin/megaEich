@@ -412,6 +412,7 @@ let cameraX = 0;
 let notification = null; // { text, timer }
 let particles = [];
 let bgStars = [];
+let deathAnim = null; // { active, timer, duration, x, y, facing, message }
 
 // ─────────────────────────────────────────────
 //  PLAYER
@@ -529,6 +530,7 @@ function loadLevel(num) {
 
   cameraX = 0;
   particles = [];
+  deathAnim = null;
   resetPlayer();
 }
 
@@ -579,7 +581,7 @@ function updatePlayer() {
 
   // Fell off world → lose a life
   if (player.y > H + 100) {
-    loseLife();
+    loseLife("💫  Ouch! Try again!");
     return;
   }
 
@@ -602,21 +604,59 @@ function updatePlayer() {
   cameraX = Math.max(0, Math.min(WORLD_W - W, cameraX));
 }
 
-function loseLife() {
+function loseLife(message = "💫  Ouch! Try again!") {
+  if (deathAnim && deathAnim.active) return;
+
   lives--;
+  deathAnim = {
+    active: true,
+    timer: 0,
+    duration: 96,
+    x: player.x,
+    y: player.y,
+    facing: player.facing,
+    message,
+  };
+
+  player.vx = 0;
+  player.vy = 0;
+  player.onGround = false;
+
   spawnParticles(
     player.x + player.w / 2,
     player.y + player.h / 2,
     "#ff4444",
     22,
   );
+}
+
+function updateLifeLossAnimation() {
+  if (!deathAnim || !deathAnim.active) return;
+
+  deathAnim.timer++;
+
+  if (deathAnim.timer === 20 || deathAnim.timer === 52) {
+    spawnParticles(
+      deathAnim.x + player.w / 2,
+      deathAnim.y + player.h / 2,
+      "#ff6666",
+      8,
+    );
+  }
+
+  if (deathAnim.timer < deathAnim.duration) return;
+
+  const endMessage = deathAnim.message;
+  deathAnim = null;
+
   if (lives <= 0) {
     state = "GAME_OVER";
-  } else {
-    resetPlayer();
-    cameraX = 0;
-    showNotification("💫  Ouch! Try again!", 120);
+    return;
   }
+
+  resetPlayer();
+  cameraX = 0;
+  showNotification(endMessage, 120);
 }
 
 // ─────────────────────────────────────────────
@@ -648,11 +688,9 @@ function checkHazards() {
     ) {
       h.active = false;
       if (h.type === "fire") {
-        loseLife();
-        showNotification("🔥  Ouch! Stay away from fire!", 100);
+        loseLife("🔥  Ouch! Stay away from fire!");
       } else if (h.type === "trap") {
-        loseLife();
-        showNotification("⚠️  Trapped! Lost a life!", 100);
+        loseLife("⚠️  Trapped! Lost a life!");
       }
     }
   }
@@ -989,6 +1027,28 @@ function drawEichhörnchen(x, y, facing, walkFrame, speedBoost) {
   ctx.fillStyle = "#CC5555";
   ctx.fill();
 
+  ctx.restore();
+}
+
+function drawDyingEichhörnchen(anim) {
+  const progress = Math.min(1, anim.timer / anim.duration);
+  const rotate = -1.2 * progress * anim.facing;
+  const sink = 22 * progress;
+
+  ctx.save();
+  ctx.globalAlpha = 1 - progress * 0.7;
+  ctx.translate(anim.x - cameraX + 18, anim.y + 22 + sink);
+  ctx.rotate(rotate);
+  ctx.translate(-18, -22);
+  drawEichhörnchen(0, 0, anim.facing, 0, 0);
+  ctx.restore();
+
+  ctx.save();
+  ctx.globalAlpha = 0.7 * progress;
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "bold 16px Courier New";
+  ctx.textAlign = "center";
+  ctx.fillText("x x", anim.x - cameraX + 18, anim.y + 16 + sink * 0.4);
   ctx.restore();
 }
 
@@ -1587,6 +1647,12 @@ function update() {
   }
   if (state === "PAUSED") return;
 
+  if (deathAnim && deathAnim.active) {
+    updateLifeLossAnimation();
+    updateParticles();
+    return;
+  }
+
   // PLAYING
   updatePlayer();
   checkCollectibles();
@@ -1640,13 +1706,17 @@ function render() {
   }
 
   // Eichhörnchen
-  drawEichhörnchen(
-    player.x - cameraX,
-    player.y,
-    player.facing,
-    player.walkFrame,
-    player.speedBoost,
-  );
+  if (deathAnim && deathAnim.active) {
+    drawDyingEichhörnchen(deathAnim);
+  } else {
+    drawEichhörnchen(
+      player.x - cameraX,
+      player.y,
+      player.facing,
+      player.walkFrame,
+      player.speedBoost,
+    );
+  }
 
   // Particles
   for (const p of particles) {
