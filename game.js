@@ -269,6 +269,10 @@ window.addEventListener("keydown", (e) => {
   ) {
     e.preventDefault();
   }
+  if (e.code === "KeyF" && !e.repeat) {
+    e.preventDefault();
+    toggleFullscreen();
+  }
   if (e.code === "KeyP" || e.code === "Escape") {
     togglePause();
   }
