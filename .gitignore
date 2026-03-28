@@ -11,6 +11,7 @@ pnpm-debug.log*
 # Test output
 coverage/
 .nyc_output/
+test-results/
 
 # Environment files
 .env
