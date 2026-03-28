@@ -2,11 +2,43 @@
 
 > A fast-paced browser arcade game where a mega Eichhörnchen collects acorns and meets legendary MVPs!
 
+## Game Scene
+
+```
+             ╔═══════════════════════════════════════════╗
+             ║        MegaEich - Gameplay                ║
+             ╠═══════════════════════════════════════════╣
+             ║                                           ║
+             ║              ⬜          ⬜⬜⬜            ║
+             ║            👤MVP         🌰 ✨ ⚡         ║
+             ║                                           ║
+             ║  ⬜⬜⬜  ⬜⬜⬜⬜⬜  ⬜⬜⬜⬜              ║
+             ║   🌰       🐿 🌰      ✨   ⚡             ║
+             ║                                           ║
+             ║    ⬜⬜⬜      ⬜⬜⬜⬜⬜      ⬜⬜           ║
+             ║     ✨        🌰👤MVP      🌰            ║
+             ║                                           ║
+             ║  ═══════════════════════════════════════  ║
+             ║  🐿 Golden Eichhörnchen  Lives: ♥♥♥      ║
+             ║  Score: 2450  |  Level: 5  |  Combo: x3  ║
+             ║  ═══════════════════════════════════════  ║
+             ╚═══════════════════════════════════════════╝
+
+  🐿 = Eichhörnchen (You!)     🌰 = Acorn (+10 pts)
+  ✨ = Golden Acorn (+50 pts)  ⚡ = Power-Up (+100 pts, speed boost)
+  👤 = MVP Character (+200 pts, must meet all to complete level)
+  ⬜ = Floating Platform        ♥ = Life
+```
+
 ## Play
 
 Open `index.html` in any modern browser. No install, no build step, zero dependencies.
 
 ## How to Play
+
+Navigate the Eichhörnchen (🐿) across floating platforms to complete each level.
+
+### Controls
 
 | Action | Keys |
 |--------|------|
@@ -14,12 +46,14 @@ Open `index.html` in any modern browser. No install, no build step, zero depende
 | Jump | `Space`, `↑`, or `W` |
 | Pause / Resume | `P` or `Esc` |
 
-## Objective
+### Level Objectives
 
-Complete each level by doing **both** of the following:
+To complete a level, **you must do both**:
 
-1. **Collecting all items** — find every acorn, golden acorn, and power-up scattered across the floating platforms
-2. **Meeting every MVP** — walk up to each MVP character on the platforms to introduce yourself
+1. **Collect all collectibles** — find every acorn (🌰), golden acorn (✨), and power-up (⚡) scattered across the platforms
+2. **Meet all MVP characters** — walk up to each MVP (👤) to greet them
+
+**All collectibles collected + All MVPs met = Level Complete!** ✓
 
 ## Collectibles
 
@@ -82,10 +116,12 @@ Twenty levels of increasing difficulty that loop for endless play:
 
 ```
 megaEich/
-├── index.html   — Game shell
-├── style.css    — Arcade UI & canvas border styles
-├── game.js      — Full canvas-based game engine
-└── README.md    — This file
+├── index.html      — Game shell
+├── style.css       — Arcade UI & canvas border styles
+├── game-config.js  — Tunable game constants and shared config
+├── levels.js       — Level definitions (LEVEL_DEFS)
+├── game.js         — Canvas game engine/runtime
+└── README.md       — This file
 ```
 
 ## Tech
