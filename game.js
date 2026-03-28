@@ -179,6 +179,76 @@ function initMobileControls() {
   window.addEventListener("blur", releaseMobileKeys);
 }
 
+function initFullscreenControl() {
+  const btn = document.getElementById("fullscreen-btn");
+  const target =
+    document.getElementById("game-shell") || document.documentElement;
+  if (!btn || !target) return;
+
+  const requestFullscreen =
+    target.requestFullscreen ||
+    target.webkitRequestFullscreen ||
+    target.msRequestFullscreen;
+  const exitFullscreen =
+    document.exitFullscreen ||
+    document.webkitExitFullscreen ||
+    document.msExitFullscreen;
+
+  if (typeof requestFullscreen !== "function") {
+    btn.hidden = true;
+    return;
+  }
+
+  const getFullscreenElement = () =>
+    document.fullscreenElement ||
+    document.webkitFullscreenElement ||
+    document.msFullscreenElement ||
+    null;
+
+  const updateFullscreenLabel = () => {
+    const active = getFullscreenElement() === target;
+    btn.textContent = active ? "Exit Fullscreen" : "Fullscreen";
+    btn.setAttribute("aria-pressed", active ? "true" : "false");
+  };
+
+  const toggleFullscreen = async () => {
+    try {
+      const active = getFullscreenElement() === target;
+      if (active) {
+        if (typeof exitFullscreen === "function") {
+          await exitFullscreen.call(document);
+        }
+      } else {
+        await requestFullscreen.call(target);
+      }
+    } catch (error) {
+      console.warn("Fullscreen toggle failed:", error);
+    }
+    updateFullscreenLabel();
+  };
+
+  // Prevent fullscreen button taps from triggering touch/game start input handlers.
+  btn.addEventListener("pointerdown", (e) => {
+    e.stopPropagation();
+  });
+
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    toggleFullscreen();
+  });
+
+  window.addEventListener("keydown", (e) => {
+    if (e.code === "KeyF" && !e.repeat) {
+      e.preventDefault();
+      toggleFullscreen();
+    }
+  });
+
+  document.addEventListener("fullscreenchange", updateFullscreenLabel);
+  document.addEventListener("webkitfullscreenchange", updateFullscreenLabel);
+  updateFullscreenLabel();
+}
+
 window.addEventListener("keydown", (e) => {
   tryStartMusic();
   keys[e.code] = true;
@@ -437,20 +507,20 @@ function loseLife() {
 function checkHazards() {
   for (const h of hazards) {
     if (!h.active) continue;
-    
+
     // Generous collision check: rectangle vs rectangle
     // Player bounding box
     const playerLeft = player.x;
     const playerRight = player.x + player.w;
     const playerTop = player.y;
     const playerBottom = player.y + player.h;
-    
+
     // Hazard bounding box (centered at h.x, h.y)
     const hazardLeft = h.x - h.w / 2;
     const hazardRight = h.x + h.w / 2;
     const hazardTop = h.y - h.h;
     const hazardBottom = h.y + h.h;
-    
+
     // AABB collision
     if (
       playerRight > hazardLeft &&
@@ -937,7 +1007,7 @@ function drawFire(x, y, w, h) {
   const flicker2 = Math.sin(tick * 0.22 + 2) * 3;
   ctx.save();
   ctx.translate(x, y);
-  
+
   // Left flame
   ctx.beginPath();
   ctx.moveTo(-w / 2, 0);
@@ -946,7 +1016,7 @@ function drawFire(x, y, w, h) {
   ctx.quadraticCurveTo(-w / 4, -h * 0.5, -w / 2, 0);
   ctx.fillStyle = "#FF4500";
   ctx.fill();
-  
+
   // Center flame
   ctx.beginPath();
   ctx.moveTo(-w / 4, 0);
@@ -954,7 +1024,7 @@ function drawFire(x, y, w, h) {
   ctx.quadraticCurveTo(w / 4 + 3, -h * 0.5 + flicker2, w / 4, 0);
   ctx.fillStyle = "#FF8C00";
   ctx.fill();
-  
+
   // Right flame
   ctx.beginPath();
   ctx.moveTo(w / 2, 0);
@@ -962,7 +1032,7 @@ function drawFire(x, y, w, h) {
   ctx.quadraticCurveTo(w / 2 + 5, -h * 0.4 + flicker, w / 2, 0);
   ctx.fillStyle = "#FF4500";
   ctx.fill();
-  
+
   // Yellow inner flame
   ctx.beginPath();
   ctx.moveTo(-w / 3, -h * 0.2);
@@ -972,19 +1042,19 @@ function drawFire(x, y, w, h) {
   ctx.quadraticCurveTo(-w / 4, -h * 0.4, -w / 3, -h * 0.2);
   ctx.fillStyle = "#FFD700";
   ctx.fill();
-  
+
   // Bright yellow core
   ctx.beginPath();
   ctx.ellipse(0, -h * 0.5, w * 0.25, h * 0.3, 0, 0, Math.PI * 2);
   ctx.fillStyle = "#FFFF99";
   ctx.fill();
-  
+
   // Orange glow
   ctx.beginPath();
   ctx.arc(0, -h * 0.3, w * 0.9, 0, Math.PI * 2);
   ctx.fillStyle = `rgba(255, 140, 0, ${0.25 + 0.15 * (Math.sin(tick * 0.08) + 1)})`;
   ctx.fill();
-  
+
   ctx.restore();
 }
 
@@ -1500,5 +1570,6 @@ function togglePause() {
 }
 
 initMobileControls();
+initFullscreenControl();
 initBgStars();
 gameLoop();
