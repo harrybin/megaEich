@@ -6,8 +6,6 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 const bgMusic = document.getElementById("bgMusic");
-const fullscreenBtn = document.getElementById("fullscreen-btn");
-const fullscreenTarget = document.getElementById("game-shell");
 const W = canvas.width; // 800
 const H = canvas.height; // 500
 
@@ -181,84 +179,6 @@ function initMobileControls() {
   window.addEventListener("blur", releaseMobileKeys);
 }
 
-function supportsFullscreen() {
-  if (!fullscreenTarget) return false;
-  return Boolean(
-    fullscreenTarget.requestFullscreen ||
-      fullscreenTarget.webkitRequestFullscreen ||
-      document.exitFullscreen ||
-      document.webkitExitFullscreen,
-  );
-}
-
-function getFullscreenElement() {
-  return document.fullscreenElement || document.webkitFullscreenElement || null;
-}
-
-function updateFullscreenButtonLabel() {
-  if (!fullscreenBtn) return;
-  const isFullscreen = getFullscreenElement() === fullscreenTarget;
-  fullscreenBtn.textContent = isFullscreen ? "Exit Fullscreen" : "Fullscreen";
-  fullscreenBtn.setAttribute("aria-pressed", isFullscreen ? "true" : "false");
-}
-
-async function toggleFullscreen() {
-  if (!fullscreenTarget) return;
-
-  try {
-    if (getFullscreenElement() === fullscreenTarget) {
-      if (document.exitFullscreen) {
-        await document.exitFullscreen();
-      } else if (document.webkitExitFullscreen) {
-        document.webkitExitFullscreen();
-      }
-      return;
-    }
-
-    if (fullscreenTarget.requestFullscreen) {
-      await fullscreenTarget.requestFullscreen();
-    } else if (fullscreenTarget.webkitRequestFullscreen) {
-      fullscreenTarget.webkitRequestFullscreen();
-    }
-  } catch {
-    // If browser blocks fullscreen, keep the game running with no interruption.
-  }
-}
-
-function initFullscreenControls() {
-  if (!fullscreenBtn) return;
-  if (!supportsFullscreen()) {
-    fullscreenBtn.hidden = true;
-    return;
-  }
-
-  updateFullscreenButtonLabel();
-
-  fullscreenBtn.addEventListener("pointerdown", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  });
-
-  fullscreenBtn.addEventListener(
-    "touchstart",
-    (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-    },
-    { passive: false },
-  );
-
-  fullscreenBtn.addEventListener("click", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    tryStartMusic();
-    toggleFullscreen();
-  });
-
-  document.addEventListener("fullscreenchange", updateFullscreenButtonLabel);
-  document.addEventListener("webkitfullscreenchange", updateFullscreenButtonLabel);
-}
-
 window.addEventListener("keydown", (e) => {
   tryStartMusic();
   keys[e.code] = true;
@@ -268,10 +188,6 @@ window.addEventListener("keydown", (e) => {
     )
   ) {
     e.preventDefault();
-  }
-  if (e.code === "KeyF" && !e.repeat) {
-    e.preventDefault();
-    toggleFullscreen();
   }
   if (e.code === "KeyP" || e.code === "Escape") {
     togglePause();
@@ -524,13 +440,8 @@ function checkHazards() {
 
   for (const h of hazards) {
     if (!h.active) continue;
-    // AABB collision - hazard is centered at (h.x, h.y)
-    const hLeft = h.x - h.w / 2;
-    const hRight = h.x + h.w / 2;
-    const hTop = h.y - h.h;
-    const hBottom = h.y + h.h;
-    
-    if (cx > hLeft && cx < hRight && cy > hTop && cy < hBottom) {
+    // AABB collision
+    if (cx > h.x && cx < h.x + h.w && cy > h.y - h.h && cy < h.y + h.h) {
       h.active = false;
       if (h.type === "fire") {
         loseLife();
@@ -1573,6 +1484,5 @@ function togglePause() {
 }
 
 initMobileControls();
-initFullscreenControls();
 initBgStars();
 gameLoop();
