@@ -109,7 +109,7 @@ function bindTouchControlButton(btn) {
   const isPauseAction = action === "pause";
 
   const press = (e) => {
-    e.preventDefault();
+    if (e.cancelable) e.preventDefault();
     tryStartMusic();
     if (isPauseAction) {
       togglePause();
@@ -118,19 +118,28 @@ function bindTouchControlButton(btn) {
     if (typeof e.pointerId === "number") {
       pressTouchKey(key, e.pointerId);
       btn.setPointerCapture(e.pointerId);
+    } else {
+      pressTouchKey(key, `${key}-touch-fallback`);
     }
   };
 
   const release = (e) => {
-    e.preventDefault();
+    if (e.cancelable) e.preventDefault();
     if (isPauseAction) return;
-    if (typeof e.pointerId === "number") releasePointerTouch(e.pointerId);
+    if (typeof e.pointerId === "number") {
+      releasePointerTouch(e.pointerId);
+    } else {
+      releasePointerTouch(`${key}-touch-fallback`);
+    }
   };
 
   btn.addEventListener("pointerdown", press);
   btn.addEventListener("pointerup", release);
   btn.addEventListener("pointercancel", release);
   btn.addEventListener("pointerleave", release);
+  btn.addEventListener("touchstart", press, { passive: false });
+  btn.addEventListener("touchend", release, { passive: false });
+  btn.addEventListener("touchcancel", release, { passive: false });
 }
 
 function initMobileControls() {
@@ -138,11 +147,20 @@ function initMobileControls() {
   if (!controls) return;
 
   mobileControlsEnabled = detectMobileBrowser();
-  if (!mobileControlsEnabled) return;
-
-  document.body.classList.add("mobile-controls-enabled");
   const touchButtons = controls.querySelectorAll(".touch-btn");
   touchButtons.forEach((btn) => bindTouchControlButton(btn));
+
+  if (mobileControlsEnabled) document.body.classList.add("mobile-controls-enabled");
+
+  // Some phone browsers report touch capability only after first interaction.
+  window.addEventListener(
+    "touchstart",
+    () => {
+      mobileControlsEnabled = true;
+      document.body.classList.add("mobile-controls-enabled");
+    },
+    { once: true, passive: true },
+  );
 
   // Avoid stuck movement when a touch is interrupted by OS gestures.
   window.addEventListener("blur", releaseMobileKeys);

@@ -71,7 +71,7 @@ body::before {
   position: fixed;
   left: 0;
   right: 0;
-  bottom: 10px;
+  bottom: max(10px, env(safe-area-inset-bottom));
   width: 100%;
   justify-content: space-between;
   align-items: end;
@@ -145,11 +145,26 @@ body.mobile-controls-enabled #mobile-controls-hint {
 }
 
 body.mobile-controls-enabled #wrapper {
-  padding-bottom: 116px;
+  padding-bottom: calc(116px + env(safe-area-inset-bottom));
 }
 
 body.mobile-controls-enabled #controls-hint {
   display: none;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  #mobile-controls,
+  #mobile-controls-hint {
+    display: flex;
+  }
+
+  #controls-hint {
+    display: none;
+  }
+
+  #wrapper {
+    padding-bottom: calc(116px + env(safe-area-inset-bottom));
+  }
 }
 
 @media (max-width: 900px) {
