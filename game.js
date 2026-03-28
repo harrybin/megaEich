@@ -194,10 +194,9 @@ function initFullscreenControl() {
     document.webkitExitFullscreen ||
     document.msExitFullscreen;
 
-  if (typeof requestFullscreen !== "function") {
-    btn.hidden = true;
-    return;
-  }
+  const hasNativeFullscreen = typeof requestFullscreen === "function";
+  const isMobileLike =
+    detectMobileBrowser() || window.matchMedia("(max-width: 900px)").matches;
 
   const getFullscreenElement = () =>
     document.fullscreenElement ||
@@ -205,24 +204,51 @@ function initFullscreenControl() {
     document.msFullscreenElement ||
     null;
 
+  const isPseudoFullscreenActive = () =>
+    document.body.classList.contains("pseudo-fullscreen");
+
+  const enablePseudoFullscreen = () => {
+    document.body.classList.add("pseudo-fullscreen");
+  };
+
+  const disablePseudoFullscreen = () => {
+    document.body.classList.remove("pseudo-fullscreen");
+  };
+
   const updateFullscreenLabel = () => {
-    const active = getFullscreenElement() === target;
+    const active =
+      getFullscreenElement() === target || isPseudoFullscreenActive();
     btn.textContent = active ? "Exit Fullscreen" : "Fullscreen";
     btn.setAttribute("aria-pressed", active ? "true" : "false");
   };
 
   const toggleFullscreen = async () => {
     try {
-      const active = getFullscreenElement() === target;
-      if (active) {
+      const nativeActive = getFullscreenElement() === target;
+      const pseudoActive = isPseudoFullscreenActive();
+
+      if (nativeActive) {
         if (typeof exitFullscreen === "function") {
           await exitFullscreen.call(document);
         }
+      } else if (pseudoActive) {
+        disablePseudoFullscreen();
       } else {
-        await requestFullscreen.call(target);
+        if (hasNativeFullscreen) {
+          await requestFullscreen.call(target);
+        }
+
+        // Mobile Safari and some in-app browsers can reject element fullscreen.
+        if (getFullscreenElement() !== target && isMobileLike) {
+          enablePseudoFullscreen();
+        }
       }
     } catch (error) {
       console.warn("Fullscreen toggle failed:", error);
+      if (isMobileLike) {
+        if (isPseudoFullscreenActive()) disablePseudoFullscreen();
+        else enablePseudoFullscreen();
+      }
     }
     updateFullscreenLabel();
   };
@@ -231,6 +257,25 @@ function initFullscreenControl() {
   btn.addEventListener("pointerdown", (e) => {
     e.stopPropagation();
   });
+
+  btn.addEventListener(
+    "touchstart",
+    (e) => {
+      e.stopPropagation();
+      if (e.cancelable) e.preventDefault();
+    },
+    { passive: false },
+  );
+
+  btn.addEventListener(
+    "touchend",
+    (e) => {
+      e.stopPropagation();
+      if (e.cancelable) e.preventDefault();
+      toggleFullscreen();
+    },
+    { passive: false },
+  );
 
   btn.addEventListener("click", (e) => {
     e.stopPropagation();
@@ -246,6 +291,7 @@ function initFullscreenControl() {
 
   document.addEventListener("fullscreenchange", updateFullscreenLabel);
   document.addEventListener("webkitfullscreenchange", updateFullscreenLabel);
+  document.addEventListener("msfullscreenchange", updateFullscreenLabel);
   updateFullscreenLabel();
 }
 
