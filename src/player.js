@@ -103,6 +103,8 @@ class Player {
   }
 }
 
+export default Player;
+
 if (typeof module !== "undefined" && module.exports) {
   module.exports = Player;
 }
