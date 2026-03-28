@@ -408,6 +408,23 @@ let score = 0;
 let lives = 3;
 let tick = 0;
 let cameraX = 0;
+let levelStartTick = 0;
+let totalDistTraveled = 0;
+let levelParTime = 0;
+let levelParDist = 0;
+let lastLevelBonuses = { time: 0, dist: 0, elapsed: 0 };
+
+// Bonus scoring constants
+const TICKS_PER_SECOND = 60;
+const PAR_SECS_PER_COLLECTIBLE = 5;
+const PAR_SECS_PER_MVP = 10;
+const PAR_BASE_SECS = 60;
+const PAR_DIST_MULTIPLIER = 0.6; // fraction of max distance possible in par time
+const POINTS_PER_SECOND_UNDER_PAR = 5;
+const TIME_BONUS_CAP_PER_LEVEL = 150;
+const PIXELS_PER_DIST_BONUS = 400;
+const POINTS_PER_DIST_SEGMENT = 5;
+const DIST_BONUS_CAP_PER_LEVEL = 100;
 
 let notification = null; // { text, timer }
 let particles = [];
@@ -531,6 +548,17 @@ function loadLevel(num) {
   cameraX = 0;
   particles = [];
   deathAnim = null;
+
+  // Compute par time and par distance for this level's bonus scoring
+  const numC = (def.acorns || 0) + (def.golden || 0) + (def.powerups || 0);
+  const numM = def.mvpCount || 0;
+  levelParTime =
+    (numC * PAR_SECS_PER_COLLECTIBLE + numM * PAR_SECS_PER_MVP + PAR_BASE_SECS) *
+    TICKS_PER_SECOND;
+  levelParDist = MOVE_SPEED * levelParTime * PAR_DIST_MULTIPLIER;
+  levelStartTick = tick;
+  totalDistTraveled = 0;
+
   resetPlayer();
 }
 
@@ -558,6 +586,7 @@ function updatePlayer() {
   player.vy += GRAVITY;
   player.x += player.vx;
   player.y += player.vy;
+  totalDistTraveled += Math.abs(player.vx);
 
   // World bounds
   player.x = Math.max(0, Math.min(WORLD_W - player.w, player.x));
@@ -750,7 +779,27 @@ function checkMVPs() {
 // ─────────────────────────────────────────────
 function checkLevelComplete() {
   if (collectibles.every((c) => c.collected) && mvps.every((m) => m.met)) {
+    const elapsed = tick - levelStartTick;
+    const timeBonus = Math.min(
+      Math.max(
+        0,
+        Math.floor((levelParTime - elapsed) / TICKS_PER_SECOND) *
+          POINTS_PER_SECOND_UNDER_PAR,
+      ),
+      level * TIME_BONUS_CAP_PER_LEVEL,
+    );
+    const distBonus = Math.min(
+      Math.max(
+        0,
+        Math.floor((levelParDist - totalDistTraveled) / PIXELS_PER_DIST_BONUS) *
+          POINTS_PER_DIST_SEGMENT,
+      ),
+      level * DIST_BONUS_CAP_PER_LEVEL,
+    );
+    lastLevelBonuses = { time: timeBonus, dist: distBonus, elapsed };
     score += level * 500;
+    score += timeBonus;
+    score += distBonus;
     state = "LEVEL_COMPLETE";
   }
 }
@@ -1536,9 +1585,9 @@ function drawLevelCompleteScreen() {
 
   roundRect(
     W / 2 - 230,
-    H / 2 - 122,
+    H / 2 - 160,
     460,
-    244,
+    316,
     14,
     "rgba(0,20,60,0.92)",
     "#FFD700",
@@ -1549,26 +1598,54 @@ function drawLevelCompleteScreen() {
   ctx.textAlign = "center";
   ctx.shadowColor = "#FFD700";
   ctx.shadowBlur = 16;
-  ctx.fillText("LEVEL COMPLETE!", W / 2, H / 2 - 72);
+  ctx.fillText("LEVEL COMPLETE!", W / 2, H / 2 - 114);
   ctx.shadowBlur = 0;
+
+  const elapsedSec = Math.floor(lastLevelBonuses.elapsed / 60);
+  const elapsedMin = Math.floor(elapsedSec / 60);
+  const elapsedRemSec = elapsedSec % 60;
+  const timeStr =
+    elapsedMin > 0
+      ? `${elapsedMin}m ${elapsedRemSec}s`
+      : `${elapsedSec}s`;
+
+  ctx.font = "15px Courier New";
+  ctx.fillStyle = "#AAA";
+  ctx.fillText(`Time: ${timeStr}`, W / 2, H / 2 - 76);
 
   ctx.font = "18px Courier New";
   ctx.fillStyle = "#FFF";
-  ctx.fillText(`Level Bonus  +${level * 500} pts`, W / 2, H / 2 - 28);
-  ctx.fillText(`Total Score: ${score}`, W / 2, H / 2 + 8);
+  ctx.fillText(`Level Bonus  +${level * 500} pts`, W / 2, H / 2 - 48);
+
+  ctx.fillStyle = lastLevelBonuses.time > 0 ? "#4FC3F7" : "#555";
+  ctx.fillText(
+    `Time Bonus  +${lastLevelBonuses.time} pts`,
+    W / 2,
+    H / 2 - 18,
+  );
+
+  ctx.fillStyle = lastLevelBonuses.dist > 0 ? "#69F0AE" : "#555";
+  ctx.fillText(
+    `Efficiency Bonus  +${lastLevelBonuses.dist} pts`,
+    W / 2,
+    H / 2 + 12,
+  );
+
+  ctx.fillStyle = "#FFF";
+  ctx.fillText(`Total Score: ${score}`, W / 2, H / 2 + 48);
 
   ctx.font = "14px Courier New";
   ctx.fillStyle = "#AAA";
   ctx.fillText(
     `MVPs met: ${mvps.filter((m) => m.met).length} / ${mvps.length}`,
     W / 2,
-    H / 2 + 40,
+    H / 2 + 76,
   );
 
   const pulse = 0.6 + 0.4 * Math.sin(tick * 0.1);
   ctx.font = "bold 17px Courier New";
   ctx.fillStyle = `rgba(245,166,35,${pulse})`;
-  ctx.fillText("▶   SPACE to continue   ◀", W / 2, H / 2 + 82);
+  ctx.fillText("▶   SPACE to continue   ◀", W / 2, H / 2 + 114);
 }
 
 function drawGameOverScreen() {
