@@ -4,8 +4,8 @@ function hasActiveFullscreen(metrics) {
   if (!metrics) return false;
   return Boolean(
     metrics.wrapperFullscreen ||
-      metrics.pseudoFullscreen ||
-      metrics.fullscreenElementId,
+    metrics.pseudoFullscreen ||
+    metrics.fullscreenElementId,
   );
 }
 
