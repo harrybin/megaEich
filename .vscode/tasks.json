@@ -1,0 +1,11 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Run MegaEich",
+      "type": "shell",
+      "command": "Start-Process index.html",
+      "problemMatcher": []
+    }
+  ]
+}

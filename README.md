@@ -1,6 +1,6 @@
-# MegaEich — Mega Squirrel Arcade 🐿
+# MegaEich — Mega Eichhörnchen Arcade 🐿
 
-> A fast-paced browser arcade game where a mega squirrel collects acorns and meets legendary MVPs!
+> A fast-paced browser arcade game where a mega Eichhörnchen collects acorns and meets legendary MVPs!
 
 ## Play
 

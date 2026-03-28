@@ -152,6 +152,31 @@ const LEVEL_DEFS = [
       { x: 2700, y: GROUND_Y - 110, w: 130 },
     ],
   },
+  // Level 4
+  {
+    acorns: 15,
+    golden: 4,
+    powerups: 3,
+    mvpCount: 5,
+    platforms: [
+      { x: 240, y: GROUND_Y - 130, w: 120 },
+      { x: 440, y: GROUND_Y - 210, w: 105 },
+      { x: 640, y: GROUND_Y - 145, w: 110 },
+      { x: 830, y: GROUND_Y - 230, w: 100 },
+      { x: 1020, y: GROUND_Y - 160, w: 115 },
+      { x: 1210, y: GROUND_Y - 95, w: 105 },
+      { x: 1400, y: GROUND_Y - 215, w: 100 },
+      { x: 1590, y: GROUND_Y - 175, w: 110 },
+      { x: 1780, y: GROUND_Y - 130, w: 105 },
+      { x: 1970, y: GROUND_Y - 220, w: 100 },
+      { x: 2160, y: GROUND_Y - 160, w: 110 },
+      { x: 2350, y: GROUND_Y - 95, w: 105 },
+      { x: 2530, y: GROUND_Y - 200, w: 100 },
+      { x: 2710, y: GROUND_Y - 145, w: 110 },
+      { x: 2890, y: GROUND_Y - 180, w: 100 },
+      { x: 3050, y: GROUND_Y - 120, w: 105 },
+    ],
+  },
 ];
 
 function loadLevel(num) {
@@ -507,9 +532,9 @@ function roundRect(x, y, w, h, r, fillColor, strokeColor) {
 }
 
 // ─────────────────────────────────────────────
-//  DRAW: SQUIRREL
+//  DRAW: EICHHÖRNCHEN
 // ─────────────────────────────────────────────
-function drawSquirrel(x, y, facing, walkFrame, speedBoost) {
+function drawEichhörnchen(x, y, facing, walkFrame, speedBoost) {
   ctx.save();
   ctx.translate(x + 18, y); // centre x for easy flip
   if (facing === -1) ctx.scale(-1, 1);
@@ -999,7 +1024,7 @@ function drawStartScreen() {
   ctx.textAlign = "center";
   ctx.shadowColor = "#f5a623";
   ctx.shadowBlur = 20;
-  ctx.fillText("MEGA SQUIRREL", W / 2, 112);
+  ctx.fillText("MEGA EICHHÖRNCHEN", W / 2, 112);
   ctx.shadowBlur = 0;
 
   ctx.font = "16px Courier New";
@@ -1026,8 +1051,8 @@ function drawStartScreen() {
   ctx.fillStyle = `rgba(245,166,35,${pulse})`;
   ctx.fillText("▶   PRESS SPACE TO START   ◀", W / 2, 422);
 
-  // Preview squirrel
-  drawSquirrel(W / 2 - 18, H - 108, 1, Math.floor(tick / 12) % 4, 0);
+  // Preview Eichhörnchen
+  drawEichhörnchen(W / 2 - 18, H - 108, 1, Math.floor(tick / 12) % 4, 0);
 }
 
 function drawLevelCompleteScreen() {
@@ -1189,8 +1214,8 @@ function render() {
     drawMVP(sx, m.y, m.name, m.bounceTimer, m.met);
   }
 
-  // Squirrel
-  drawSquirrel(
+  // Eichhörnchen
+  drawEichhörnchen(
     player.x - cameraX,
     player.y,
     player.facing,
