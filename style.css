@@ -434,3 +434,106 @@ body.mobile-controls-enabled #wrapper:-webkit-full-screen #mobile-controls {
     height: 90px;
   }
 }
+
+/* ─────────────────────────────────────────────
+   HIGHSCORE PANEL
+   ───────────────────────────────────────────── */
+#highscore-panel {
+  width: min(100vw, 860px);
+  padding: 16px 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  border-top: 1px solid #1a2230;
+}
+
+#highscore-header h2 {
+  font-family: "Courier New", monospace;
+  font-size: 15px;
+  font-weight: 700;
+  color: #f5a623;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 5px;
+}
+
+#highscore-subtitle {
+  font-size: 11px;
+  color: #556;
+  letter-spacing: 0.3px;
+}
+
+#highscore-score-display {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: "Courier New", monospace;
+  font-size: 13px;
+  flex-wrap: wrap;
+}
+
+#highscore-score-display[hidden] {
+  display: none;
+}
+
+#highscore-score-label {
+  color: #6f7d90;
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.4px;
+}
+
+#highscore-score-value {
+  color: #f5a623;
+  font-weight: 700;
+  font-size: 17px;
+  text-shadow: 0 0 8px rgba(245, 166, 35, 0.45);
+}
+
+#highscore-copy-btn {
+  border: 1px solid #2a3548;
+  border-radius: 6px;
+  background: rgba(10, 16, 26, 0.88);
+  color: #8899aa;
+  font-family: "Courier New", monospace;
+  font-size: 11px;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+#highscore-copy-btn:hover {
+  border-color: #f5a623;
+  color: #f5a623;
+}
+
+#highscore-copy-btn:active {
+  transform: translateY(1px);
+}
+
+#giscus-setup-notice {
+  font-family: "Courier New", monospace;
+  font-size: 11px;
+  color: #556;
+  letter-spacing: 0.3px;
+}
+
+#giscus-setup-notice[hidden] {
+  display: none;
+}
+
+#giscus-setup-notice a {
+  color: #6a8fbc;
+  text-decoration: none;
+}
+
+#giscus-setup-notice a:hover {
+  text-decoration: underline;
+}
+
+/* Hide the highscore panel whenever fullscreen is active (either native or
+   pseudo) — covers all orientations, but especially landscape where the game
+   fills the screen and there is no room for the score/login UI. */
+body.fullscreen-active #highscore-panel {
+  display: none;
+}
